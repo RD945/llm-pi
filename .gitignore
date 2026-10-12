@@ -1,0 +1,33 @@
+# Models (large, re-download via download-model.sh)
+models/*.gguf
+models/*.bin
+
+# llama.cpp build artifacts (rebuild via cmake)
+llama.cpp/build/
+llama.cpp/.cache/
+
+# Next.js
+web/node_modules/
+web/.next/
+web/out/
+web/.env.local
+web/.env.*.local
+
+# OS / logs
+.DS_Store
+Thumbs.db
+*.log
+/tmp/
+.nojekyll
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Secrets
+.env
+*.pem
+*.key
+!web/.env.example
