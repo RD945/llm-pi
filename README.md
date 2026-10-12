@@ -4,7 +4,10 @@
 > Built for **Raspberry Pi 5 Rev 1.1 (Cortex-A76 ×4 @ 2.4 GHz, 8 GB LPDDR4X, Debian 13 Trixie)** but adapts to any Linux/arm64 or x86_64 box.
 
 <p align="center">
-![Next.js](https://img.shields.io/badge/Next.js-16.4-black) ![llama.cpp](https://img.shields.io/badge/llama.cpp-b11574-blue) ![Pi](https://img.shields.io/badge/Raspberry%20Pi-5-red) ![License](https://img.shields.io/badge/license-MIT-green)
+  <img src="https://img.shields.io/badge/Next.js-16.4-black" alt="Next.js" />
+  <img src="https://img.shields.io/badge/llama.cpp-b11574-blue" alt="llama.cpp" />
+  <img src="https://img.shields.io/badge/Raspberry%20Pi-5-red" alt="Pi" />
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="License" />
 </p>
 
 A complete, private LLM stack that runs entirely on a Raspberry Pi — no cloud calls, no API keys, and no data leaving the device. It pairs a quantized language model served by llama.cpp with a fast, streaming Next.js chat interface that works from any phone or laptop on the same WiFi. Built and benchmarked on a Pi 5, but the setup adapts to any Linux machine.
