@@ -3,27 +3,13 @@
 > **Streaming chat, 100% on-device.** No cloud, no API keys, no data leaving the Pi.
 > Built for **Raspberry Pi 5 Rev 1.1 (Cortex-A76 ×4 @ 2.4 GHz, 8 GB LPDDR4X, Debian 13 Trixie)** but adapts to any Linux/arm64 or x86_64 box.
 
+<p align="center">
+
 ![Next.js](https://img.shields.io/badge/Next.js-16.4-black) ![llama.cpp](https://img.shields.io/badge/llama.cpp-b11574-blue) ![Pi](https://img.shields.io/badge/Raspberry%20Pi-5-red) ![License](https://img.shields.io/badge/license-MIT-green)
 
----
+</p>
 
-## Contents
-- [What it is](#what-it-is)
-- [Demo](#demo)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Project Layout](#project-layout)
-- [Quick Start](#quick-start)
-- [Full Setup (from scratch)](#full-setup-from-scratch)
-- [Web UI Guide](#web-ui-guide)
-- [Scripts Reference](#scripts-reference)
-- [Configuration](#configuration)
-- [Models](#models)
-- [Optimizations & Benchmarks](#optimizations--benchmarks)
-- [Troubleshooting](#troubleshooting)
-- [Versions](#versions)
-- [Change Log](#change-log)
-- [License & Credits](#license--credits)
+A complete, private LLM stack that runs entirely on a Raspberry Pi — no cloud calls, no API keys, and no data leaving the device. It pairs a quantized language model served by llama.cpp with a fast, streaming Next.js chat interface that works from any phone or laptop on the same WiFi. Built and benchmarked on a Pi 5, but the setup adapts to any Linux machine.
 
 ---
 
@@ -528,63 +514,3 @@ start-llm.sh, server.sh, run.sh, start-all.sh
 ```
 
 ---
-
-## Troubleshooting
-
-| Symptom | Fix |
-|---------|-----|
-| `Cannot reach llama.cpp at 127.0.0.1:8080` in UI | `~/llm/start-llm.sh` or `~/llm/llama.cpp/build/bin/llama-server -m ... -t 2 -tb 4 -c 2048 --port 8080 --host 0.0.0.0 > /tmp/llama-server.log &` |
-| `couldn't bind HTTP server socket, hostname: 0.0.0.0, port: 8080` | Zombie holds port. `pkill -f llama-server; sleep 2; ~/llm/start-llm.sh` or try `:8081` |
-| `EADDRINUSE 0.0.0.0:3000` | `pkill -f "next-server"; cd ~/llm/web && nohup env LLAMA_URL=http://127.0.0.1:8080 npm run start > /tmp/next.log &` (or `dev`) |
-| UI blank / 404 after update | `cd ~/llm/web && npm run build` then restart web |
-| `你好` Chinese reply | Fixed via English system prompt in `web/src/app/api/chat/route.ts`. Hard refresh `Ctrl+Shift+R`. Verify: `curl -s -X POST http://127.0.0.1:3000/api/chat -H "Content-Type: application/json" -d '{"messages":[{"role":"user","content":"hi"}]}' --no-buffer` should stream `Hello` |
-| Slow / high CPU | Already optimized to `t=2/tb=4`. Check `curl http://127.0.0.1:3000/api/system` CPU/temp. `vcgencmd get_throttled` should be `0x0`. `free -h` — keep >1 GB free |
-| `python3.12: not found` | Rebuild from source per Full Setup §3, then `sudo ldconfig` |
-| `cmake: not found` | `export PATH="$HOME/.local/bin:$PATH"` |
-| `build` OOM / Pi freezes | `make -j1` or `cmake --build ... -j1`; close browser; add swap if needed |
-
-Logs: `/tmp/llama-server.log`, `/tmp/next.log`.
-Health checks: `curl -s http://127.0.0.1:8080/health` → `{"status":"ok"}` · `curl -s http://127.0.0.1:3000/api/chat` → proxy OK · `curl -s http://127.0.0.1:3000/api/system | python3 -m json.tool`.
-
----
-
-## Versions (this machine)
-
-```
-Pi:            Raspberry Pi 5 Model B Rev 1.1 (Cortex-A76 ×4 @ 2.4 GHz, 8 GB, Debian Trixie)
-Linux:         6.18.50+rpt-rpi-2712
-GCC:           14.2.0
-cmake:         4.4.4 (pip)
-llama.cpp:     b11574 (8bb3cf0d2) — Release, -DLLAMA_CURL=OFF, dotprod/NEON
-Node/npm:      20.19.2 / 9.2.0
-Python:        3.12.10 (built) + 3.13.5 (system) + pip 25.0.1
-OpenSSL:       3.5.7 (+ libssl-dev)
-GGUF:          Qwen2.5-0.5B-Instruct-Q4_K_M  380M (bartowski)
-Next.js/TW:    16.4.0 / 4.x   React 19.3.0
-Perf (live):   ~36 tok/s prompt, ~16 tok/s gen  (-t 2 -tb 4 -c 2048)
-```
-
----
-
-## Change Log
-
-### 2026-10-13 — Optimizations & UI polish
-
-- **Benchmarked** `llama-bench -p 512 -n 128 -r 3` at `-t 1/2/3/4` (b11574, Qwen2.5 0.5B Q4_K_M, Pi 5). Found generation collapse at `-t 4` (5 tok/s, memory contention); `-t 2` restores ~16 tok/s. Split `-t 2 -tb 4` preserves prompt 36 tok/s.
-- **Ruled out** flash-attn, `q8_0`/`q4_0` KV, `performance` governor, Vulkan/OpenBLAS, `Q4_0`.
-- **Applied** `-t 2 -tb 4 -c 2048` to `start-llm.sh`, `server.sh`, `run.sh`, `start-all.sh`; `c=2048` halves KV cache.
-- **UI** — delete icons: emoji `🗑` / `✕` → proper trash SVG (`aria-label`, focus-visible); removed `N messages` count from history items (kept timestamp); verified streaming SSE, 1 s system poll, CPU sparkline, per-message `tok/s`.
-
-### 2026-10-13 — Features
-
-- Streaming chat (SSE proxy + English fix), history/search/delete, system panel, CPU graph, tok/s stats.
-- WiFi `0.0.0.0` binds, Next.js + llama.cpp end-to-end.
-
----
-
-## License & Credits
-
-- `llama.cpp` MIT (ggml-org)
-- `Qwen2.5` — Alibaba Cloud (Qwen License)
-- `Next.js` MIT (Vercel)
-- This stack is **local-only** — no data leaves the Pi.
